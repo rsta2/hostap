@@ -2120,8 +2120,12 @@ static void wpa_supplicant_event_assoc(struct wpa_supplicant *wpa_s,
 		}
 	}
 
+#ifdef ANDROID
+	if (wpa_s->conf->ap_scan == 1) {
+#else /* ANDROID */
 	if (wpa_s->conf->ap_scan == 1 &&
 	    wpa_s->drv_flags & WPA_DRIVER_FLAGS_BSS_SELECTION) {
+#endif /* ANDROID */
 		if (wpa_supplicant_assoc_update_ie(wpa_s) < 0 && new_bss)
 			wpa_msg(wpa_s, MSG_WARNING,
 				"WPA/RSN IEs not updated");
