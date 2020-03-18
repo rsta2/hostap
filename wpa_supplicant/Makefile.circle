@@ -29,9 +29,9 @@ OBJS2	= \
 	  ../src/crypto/sha1.o \
 	  ../src/crypto/tls_none.o \
 	  ../src/drivers/drivers.o \
-	  ../src/drivers/driver_none.o \
+	  ../src/drivers/driver_circle.o \
 	  ../src/drivers/scan_helpers.o \
-	  ../src/l2_packet/l2_packet_none.o \
+	  ../src/l2_packet/l2_packet_circle.o \
 	  ../src/rsn_supp/preauth.o \
 	  ../src/rsn_supp/wpa.o \
 	  ../src/rsn_supp/wpa_ie.o \
@@ -51,7 +51,7 @@ INCLUDE += \
 	  -I ../src/rsn_supp \
 	  -I ../src/utils
 
-DEFINE	+= -DCONFIG_DRIVER_NONE
+DEFINE	+= -DCONFIG_DRIVER_CIRCLE
 
 CFLAGS	+= -Wno-write-strings
 

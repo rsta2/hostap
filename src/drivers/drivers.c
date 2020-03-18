@@ -15,6 +15,9 @@
 #include "includes.h"
 
 
+#ifdef CONFIG_DRIVER_CIRCLE
+extern struct wpa_driver_ops wpa_driver_circle_ops; /* driver_circle.c */
+#endif /* CONFIG_DRIVER_CIRCLE */
 #ifdef CONFIG_DRIVER_WEXT
 extern struct wpa_driver_ops wpa_driver_wext_ops; /* driver_wext.c */
 #endif /* CONFIG_DRIVER_WEXT */
@@ -87,6 +90,9 @@ extern struct wpa_driver_ops ap_driver_ops; /* wpa_supplicant/ap.c */
 
 struct wpa_driver_ops *wpa_drivers[] =
 {
+#ifdef CONFIG_DRIVER_CIRCLE
+	&wpa_driver_circle_ops,
+#endif /* CONFIG_DRIVER_CIRCLE */
 #ifdef CONFIG_DRIVER_WEXT
 	&wpa_driver_wext_ops,
 #endif /* CONFIG_DRIVER_WEXT */
