@@ -1,4 +1,5 @@
 *.d
+*.a
 .config
 eapol_test
 preauth_test
