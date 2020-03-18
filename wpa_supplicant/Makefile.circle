@@ -7,7 +7,7 @@ CIRCLEHOME = ../../../..
 OBJS	= \
 	  blacklist.o \
 	  config.o \
-	  config_none.o \
+	  config_file_circle.o \
 	  events.o \
 	  main_circle.o \
 	  notify.o \
@@ -35,6 +35,7 @@ OBJS2	= \
 	  ../src/rsn_supp/preauth.o \
 	  ../src/rsn_supp/wpa.o \
 	  ../src/rsn_supp/wpa_ie.o \
+	  ../src/utils/base64.o \
 	  ../src/utils/common.o \
 	  ../src/utils/eloop_circle.o \
 	  ../src/utils/os_circle.o \
