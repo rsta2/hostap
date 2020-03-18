@@ -14,8 +14,6 @@
 #ifndef _wpasupplicant_h
 #define _wpasupplicant_h
 
-#include <circle/netdevice.h>
-#include <circle/sched/synchronizationevent.h>
 #include <circle/string.h>
 #include <circle/types.h>
 
@@ -25,19 +23,13 @@ public:
 	CWPASupplicant (const char *pConfigFile);
 	~CWPASupplicant (void);
 
-	boolean Initialize (boolean bWaitForActivate = TRUE);
+	boolean Initialize (void);
 
 private:
 	static void ProcEntry (void *pParam);
 
 private:
 	CString m_ConfigFile;
-	CString m_SSID;
-
-	CNetDevice *m_pDevice;
-
-	CSynchronizationEvent m_Event;
-	volatile boolean m_bInitStatus;
 };
 
 #endif

@@ -15,6 +15,10 @@
 #ifndef OS_H
 #define OS_H
 
+#ifdef __circle__
+#include "os_circle.h"
+#endif
+
 typedef long os_time_t;
 
 /**

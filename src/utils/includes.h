@@ -22,6 +22,9 @@
 /* Include possible build time configuration before including anything else */
 #include "build_config.h"
 
+#ifdef __circle__
+#include "os_circle.h"
+#else
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -55,5 +58,6 @@
 #endif /* __vxworks */
 #endif /* CONFIG_TI_COMPILER */
 #endif /* CONFIG_NATIVE_WINDOWS */
+#endif	// #ifdef __circle__
 
 #endif /* INCLUDES_H */
