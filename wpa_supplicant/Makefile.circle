@@ -31,7 +31,12 @@ OBJS2	= \
 	  ../src/drivers/drivers.o \
 	  ../src/drivers/driver_circle.o \
 	  ../src/drivers/scan_helpers.o \
+	  ../src/eapol_supp/eapol_supp_sm.o \
+	  ../src/eap_common/eap_common.o \
+	  ../src/eap_peer/eap.o \
+	  ../src/eap_peer/eap_methods.o \
 	  ../src/l2_packet/l2_packet_circle.o \
+	  ../src/rsn_supp/pmksa_cache.o \
 	  ../src/rsn_supp/preauth.o \
 	  ../src/rsn_supp/wpa.o \
 	  ../src/rsn_supp/wpa_ie.o \
@@ -51,7 +56,7 @@ INCLUDE += \
 	  -I ../src/rsn_supp \
 	  -I ../src/utils
 
-DEFINE	+= -DCONFIG_DRIVER_CIRCLE
+DEFINE	+= -DCONFIG_DRIVER_CIRCLE -DIEEE8021X_EAPOL
 
 CFLAGS	+= -Wno-write-strings
 
