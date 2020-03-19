@@ -40,6 +40,7 @@ extern "C" {
 }
 
 #include <circle/netdevice.h>
+#include <circle/string.h>
 #include <wifi/bcm4343.h>
 #include <assert.h>
 
@@ -278,12 +279,61 @@ static wpa_scan_results *wpa_driver_circle_get_scan_results2 (void *priv)
 	return results;
 }
 
+int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
+	assert (drv != 0);
+
+	char ssid[32+1];
+	assert (params != 0);
+	assert (params->ssid != 0);
+	assert (params->ssid_len < sizeof ssid);
+	os_memcpy (ssid, params->ssid, params->ssid_len);
+	ssid[params->ssid_len] = '\0';
+
+	CString SSID (ssid);
+	SSID.Replace (" ", "\\x20");
+
+	if (params->auth_alg != AUTH_ALG_OPEN_SYSTEM)
+	{
+		wpa_printf (MSG_WARNING, "Auth algorithm not supported (%d)", params->auth_alg);
+
+		return -1;
+	}
+
+	int chan = 0;		// TODO: set channel from params->freq
+
+	CString Auth ("off");
+	if (params->wpa_ie != 0 && params->wpa_ie_len > 0)
+	{
+		Auth = "";
+		assert (params->wpa_ie != 0);
+		for (unsigned i = 0; i < params->wpa_ie_len; i++)
+		{
+			CString Number;
+			Number.Format ("%02X", (unsigned) params->wpa_ie[i]);
+
+			Auth.Append (Number);
+		}
+	}
+
+	assert (drv->netdev != 0);
+	if (!drv->netdev->Control ("join %s %u %s", (const char *) SSID,
+				   chan, (const char *) Auth))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
 extern "C" const struct wpa_driver_ops wpa_driver_circle_ops =
 {
 	.name = "circle",
-	.desc = "Circle network driver",
+	.desc = "Circle WLAN driver",
 	.init = wpa_driver_circle_init,
 	.deinit = wpa_driver_circle_deinit,
+	.associate = wpa_driver_circle_associate,
 	.get_scan_results2 = wpa_driver_circle_get_scan_results2,
 	.scan2 = wpa_driver_circle_scan2,
 };
