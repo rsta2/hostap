@@ -355,7 +355,7 @@ void eloop_run(void)
 			 * TODO: call each handler that has pending data to
 			 * read
 			 */
-			if (0 /* TODO: eloop.readers[i].sock ready */) {
+			if (1 /* TODO: eloop.readers[i].sock ready */) {
 				eloop.readers[i].handler(
 					eloop.readers[i].sock,
 					eloop.readers[i].eloop_data,

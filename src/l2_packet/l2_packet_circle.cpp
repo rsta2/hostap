@@ -23,15 +23,18 @@ extern "C" {
 
 #include <circle/net/netsubsystem.h>
 #include <circle/net/netdevlayer.h>
+#include <circle/net/linklayer.h>
 #include <assert.h>
 
 #define SOCK_FD		1
 
 struct l2_packet_data
 {
+	unsigned short protocol;
 	void (*rx_callback) (void *ctx, const u8 *src_addr, const u8 *buf, size_t len);
 	void *rx_callback_ctx;
 	u8 own_addr[ETH_ALEN];
+	CLinkLayer *link;
 };
 
 static void l2_packet_receive (int sock, void *eloop_ctx, void *sock_ctx);
@@ -51,12 +54,22 @@ l2_packet_data * l2_packet_init (const char *ifname, const u8 *own_addr, unsigne
 		return 0;
 	}
 
+	l2->protocol = protocol;
 	l2->rx_callback = rx_callback;
 	l2->rx_callback_ctx = rx_callback_ctx;
 
 	const CMACAddress *mac = CNetSubSystem::Get ()->GetNetDeviceLayer ()->GetMACAddress ();
 	assert (mac != 0);
 	mac->CopyTo (l2->own_addr);
+
+	l2->link = CNetSubSystem::Get ()->GetLinkLayer ();
+	assert (l2->link != 0);
+	if (!l2->link->EnableReceiveRaw (protocol))
+	{
+		os_free (l2);
+
+		return 0;
+	}
 
 	eloop_register_read_sock (SOCK_FD, l2_packet_receive, l2, 0);
 
@@ -91,7 +104,24 @@ int l2_packet_send (l2_packet_data *l2, const u8 *dst_addr, u16 proto, const u8 
 		return -1;
 	}
 
-	// TODO: send packet
+	u8 Buffer[FRAME_BUFFER_SIZE];
+	TEthernetHeader *pHeader = (TEthernetHeader *) Buffer;
+	assert (dst_addr != 0);
+	os_memcpy (pHeader->MACReceiver, dst_addr, MAC_ADDRESS_SIZE);
+	os_memcpy (pHeader->MACSender, l2->own_addr, MAC_ADDRESS_SIZE);
+	pHeader->nProtocolType = le2be16 (l2->protocol);
+
+	assert (len > 0);
+	if (len + sizeof (TEthernetHeader) > FRAME_BUFFER_SIZE)
+	{
+		return -1;
+	}
+
+	assert (buf != 0);
+	os_memcpy (Buffer + sizeof (TEthernetHeader), buf, len);
+
+	assert (l2->link != 0);
+	l2->link->SendRaw (Buffer, len + sizeof (TEthernetHeader));
 
 	return 0;
 }
@@ -101,8 +131,19 @@ static void l2_packet_receive (int sock, void *eloop_ctx, void *sock_ctx)
 	assert (sock == SOCK_FD);
 	l2_packet_data *l2 = (l2_packet_data *) eloop_ctx;
 	assert (l2 != 0);
+	assert (l2->link != 0);
+	assert (l2->rx_callback != 0);
 
-	// TODO: call l2->rx_callback
+	u8 Buffer[FRAME_BUFFER_SIZE];
+	unsigned nResultLength;
+	CMACAddress Sender;
+	while (l2->link->ReceiveRaw (Buffer, &nResultLength, &Sender))
+	{
+		u8 src_addr[MAC_ADDRESS_SIZE];
+		Sender.CopyTo (src_addr);
+
+		(*l2->rx_callback) (l2->rx_callback_ctx, src_addr, Buffer, nResultLength);
+	}
 }
 
 void l2_packet_notify_auth_start (l2_packet_data *l2)
