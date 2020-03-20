@@ -40,6 +40,7 @@ extern "C" {
 }
 
 #include <circle/netdevice.h>
+#include <circle/macaddress.h>
 #include <circle/string.h>
 #include <wifi/bcm4343.h>
 #include <assert.h>
@@ -99,7 +100,38 @@ struct wpa_driver_circle_data
 {
 	void *ctx;
 	CBcm4343Device *netdev;
+	size_t ssid_len;
+	u8 ssid[32];
 };
+
+static int wpa_driver_circle_get_bssid (void *priv, u8 *bssid)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
+	assert (drv != 0);
+
+	assert (drv->netdev != 0);
+	const CMACAddress *mac = drv->netdev->GetBSSID ();
+
+	assert (mac != 0);
+	assert (bssid != 0);
+	mac->CopyTo (bssid);
+
+	return 0;
+}
+
+static int wpa_driver_circle_get_ssid (void *priv, u8 *ssid)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
+	assert (drv != 0);
+
+	assert (ssid != 0);
+	if (drv->ssid_len > 0)
+	{
+		os_memcpy (ssid, drv->ssid, drv->ssid_len);
+	}
+
+	return drv->ssid_len;
+}
 
 static void *wpa_driver_circle_init (void *ctx, const char *ifname)
 {
@@ -324,6 +356,11 @@ int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params
 		return -1;
 	}
 
+	os_memcpy (drv->ssid, params->ssid, params->ssid_len);
+	drv->ssid_len = params->ssid_len;
+
+	wpa_supplicant_event (drv->ctx, EVENT_ASSOC, 0);
+
 	return 0;
 }
 
@@ -331,6 +368,8 @@ extern "C" const struct wpa_driver_ops wpa_driver_circle_ops =
 {
 	.name = "circle",
 	.desc = "Circle WLAN driver",
+	.get_bssid = wpa_driver_circle_get_bssid,
+	.get_ssid = wpa_driver_circle_get_ssid,
 	.init = wpa_driver_circle_init,
 	.deinit = wpa_driver_circle_deinit,
 	.associate = wpa_driver_circle_associate,
