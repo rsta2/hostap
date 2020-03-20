@@ -18,6 +18,7 @@
 #include <circle/startup.h>
 #include <circle/bcmrandom.h>
 #include <circle/sysconfig.h>
+#include <circle/debug.h>
 #include <circle/sched/scheduler.h>
 #include <assert.h>
 
@@ -251,4 +252,11 @@ void * os_zalloc (size_t size)
 	memset (p, 0, size);
 
 	return p;
+}
+
+void os_hexdump (const char *title, const void *p, size_t len)
+{
+#ifndef NDEBUG
+	debug_hexdump (p, len, title);
+#endif
 }

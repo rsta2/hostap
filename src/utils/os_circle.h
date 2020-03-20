@@ -55,6 +55,8 @@ void qsort (void *base, size_t nmemb, size_t size,
 
 void abort (void);
 
+void os_hexdump (const char *title, const void *p, size_t len);
+
 #define os_daemonize(s)			(0)
 #define os_daemonize_terminate(s)	((void) 0)
 

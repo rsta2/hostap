@@ -129,7 +129,9 @@ void wpa_printf(int level, char *fmt, ...)
 static void _wpa_hexdump(int level, const char *title, const u8 *buf,
 			 size_t len, int show)
 {
+#if !defined (__circle__) || defined (CONFIG_DEBUG_FILE)
 	size_t i;
+#endif
 	if (level < wpa_debug_level)
 		return;
 	wpa_debug_print_timestamp();
@@ -152,8 +154,12 @@ static void _wpa_hexdump(int level, const char *title, const u8 *buf,
 	if (buf == NULL) {
 		printf(" [NULL]");
 	} else if (show) {
+#ifndef __circle__
 		for (i = 0; i < len; i++)
 			printf(" %02x", buf[i]);
+#else
+		os_hexdump(title, buf, len);
+#endif
 	} else {
 		printf(" [REMOVED]");
 	}
