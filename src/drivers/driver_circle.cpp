@@ -133,6 +133,67 @@ static int wpa_driver_circle_get_ssid (void *priv, u8 *ssid)
 	return drv->ssid_len;
 }
 
+static int wpa_driver_circle_set_key (void *priv, wpa_alg alg, const u8 *addr,
+				      int key_idx, int set_tx, const u8 *seq, size_t seq_len,
+				      const u8 *key, size_t key_len)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
+	assert (drv != 0);
+	assert (drv->netdev != 0);
+
+	if (alg == WPA_ALG_NONE)	// TODO: clear key
+	{
+		return 0;
+	}
+
+	CString Number;
+	CString Address;
+	for (int i = 0; i < ETH_ALEN; i++)
+	{
+		Number.Format ("%02X", addr[i]);
+		Address.Append (Number);
+	}
+
+	assert (alg == WPA_ALG_TKIP || alg == WPA_ALG_CCMP);
+	CString Key (alg == WPA_ALG_TKIP ? "tkip:" : "ccmp:");
+
+	assert (key_len > 0);
+	for (unsigned i = 0; i < key_len; i++)
+	{
+		Number.Format ("%02X", key[i]);
+		Key.Append (Number);
+	}
+
+	Key.Append ("@");
+
+	assert (seq_len > 1);
+	for (int i = seq_len-1; i >= 0; i--)
+	{
+		Number.Format ("%02X", seq[i]);
+		Key.Append (Number);
+	}
+
+	CString Command;
+	if (set_tx)
+	{
+		assert (key_idx == 0);
+		Command = "txkey";
+	}
+	else
+	{
+		assert (key_idx <= 3);
+		Command.Format ("rxkey%u", key_idx);
+	}
+
+	if (!drv->netdev->Control ("%s %s %s", (const char *) Command,
+				   (const char *) Address, (const char *) Key))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
 static void *wpa_driver_circle_init (void *ctx, const char *ifname)
 {
 	CNetDevice *netdev = CNetDevice::GetNetDevice (NetDeviceTypeWLAN);
@@ -370,6 +431,7 @@ extern "C" const struct wpa_driver_ops wpa_driver_circle_ops =
 	.desc = "Circle WLAN driver",
 	.get_bssid = wpa_driver_circle_get_bssid,
 	.get_ssid = wpa_driver_circle_get_ssid,
+	.set_key = wpa_driver_circle_set_key,
 	.init = wpa_driver_circle_init,
 	.deinit = wpa_driver_circle_deinit,
 	.associate = wpa_driver_circle_associate,
