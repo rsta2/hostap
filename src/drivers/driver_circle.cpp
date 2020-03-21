@@ -194,6 +194,24 @@ static int wpa_driver_circle_set_key (void *priv, wpa_alg alg, const u8 *addr,
 	return 0;
 }
 
+static void wpa_driver_circle_event_handler (ether_event_type_t type, const void *params,
+					     void *context)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) context;
+	assert (drv != 0);
+
+	switch (type)
+	{
+	case ether_event_disassociate:
+		wpa_supplicant_event (drv->ctx, EVENT_DISASSOC, 0);
+		break;
+
+	default:
+		wpa_printf (MSG_DEBUG, "Unhandled event %u", type);
+		break;
+	}
+}
+
 static void *wpa_driver_circle_init (void *ctx, const char *ifname)
 {
 	CNetDevice *netdev = CNetDevice::GetNetDevice (NetDeviceTypeWLAN);
@@ -210,6 +228,8 @@ static void *wpa_driver_circle_init (void *ctx, const char *ifname)
 
 	drv->ctx = ctx;
 	drv->netdev = (CBcm4343Device *) netdev;	// netdev can only be of this type
+
+	drv->netdev->RegisterEventHandler (wpa_driver_circle_event_handler, drv);
 
 	return drv;
 }
