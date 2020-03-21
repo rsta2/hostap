@@ -33,7 +33,7 @@ int wpa_supplicant_main (const char *confname)
 	struct wpa_global *global;
 
 	memset(&params, 0, sizeof(params));
-	params.wpa_debug_level = MSG_DEBUG;
+	params.wpa_debug_level = MSG_INFO;
 
 	global = wpa_supplicant_init(&params);
 	if (global == NULL)
