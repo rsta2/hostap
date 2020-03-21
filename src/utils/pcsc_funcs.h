@@ -56,7 +56,11 @@ int scard_umts_auth(struct scard_data *scard, const unsigned char *_rand,
 
 #else /* PCSC_FUNCS */
 
-#define scard_init(s) NULL
+static inline struct scard_data * scard_init(scard_sim_type sim_type)
+{
+	return NULL;
+}
+
 #define scard_deinit(s) do { } while (0)
 #define scard_set_pin(s, p) -1
 #define scard_get_imsi(s, i, l) -1
