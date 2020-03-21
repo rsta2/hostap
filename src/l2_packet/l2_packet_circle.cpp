@@ -24,6 +24,7 @@ extern "C" {
 #include <circle/net/netsubsystem.h>
 #include <circle/net/netdevlayer.h>
 #include <circle/net/linklayer.h>
+#include <circle/sched/scheduler.h>
 #include <assert.h>
 
 #define SOCK_FD		1
@@ -143,6 +144,8 @@ static void l2_packet_receive (int sock, void *eloop_ctx, void *sock_ctx)
 		Sender.CopyTo (src_addr);
 
 		(*l2->rx_callback) (l2->rx_callback_ctx, src_addr, Buffer, nResultLength);
+
+		CScheduler::Get ()->Yield ();
 	}
 }
 
