@@ -181,6 +181,17 @@ static int wpa_driver_circle_set_key (void *priv, wpa_alg alg, const u8 *addr,
 		return 0;
 	}
 
+	u8 key_tkip[32];
+	if (alg == WPA_ALG_TKIP && key_len == 32)
+	{
+		// swap MIC keys, see set_key comment in driver.h
+		os_memcpy (key_tkip, key, 16);
+		os_memcpy (key_tkip+16, key+24, 8);
+		os_memcpy (key_tkip+24, key+16, 8);
+
+		key = key_tkip;
+	}
+
 	CString Number;
 	CString Address;
 	for (int i = 0; i < ETH_ALEN; i++)
@@ -506,7 +517,7 @@ int wpa_driver_circle_set_country (void *priv, const char *alpha2)
 		return -1;
 	}
 
-	wpa_printf (MSG_INFO, "Set country code to '%s'", country);
+	wpa_printf (MSG_INFO, "Setting country code to '%s'", country);
 
 	assert (drv->netdev != 0);
 	if (!drv->netdev->Control ("country %s", country))
