@@ -58,8 +58,6 @@ INCLUDE += \
 
 DEFINE	+= -DCONFIG_DRIVER_CIRCLE -DIEEE8021X_EAPOL
 
-CFLAGS	+= -Wno-write-strings
-
 EXTRACLEAN += $(OBJS2) $(OBJS2:.o=.d)
 
 libwpa_supplicant.a: $(OBJS)

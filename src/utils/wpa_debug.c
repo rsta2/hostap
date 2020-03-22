@@ -95,7 +95,7 @@ static int syslog_priority(int level)
  *
  * Note: New line '\n' is added to the end of the text when printing to stdout.
  */
-void wpa_printf(int level, char *fmt, ...)
+void wpa_printf(int level, const char *fmt, ...)
 {
 	va_list ap;
 

@@ -60,7 +60,7 @@ void wpa_debug_print_timestamp(void);
  *
  * Note: New line '\n' is added to the end of the text when printing to stdout.
  */
-void wpa_printf(int level, char *fmt, ...)
+void wpa_printf(int level, const char *fmt, ...)
 PRINTF_FORMAT(2, 3);
 
 /**
