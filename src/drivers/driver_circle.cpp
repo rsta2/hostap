@@ -102,7 +102,42 @@ struct wpa_driver_circle_data
 	CBcm4343Device *netdev;
 	size_t ssid_len;
 	u8 ssid[32];
+	int country_set;
 };
+
+static const char countries[][3] =
+{
+	"AD","AE","AF","AI","AL","AM","AN","AR","AS","AT","AU","AW","AZ",
+	"BA","BB","BD","BE","BF","BG","BH","BL","BM","BN","BO","BR","BS",
+	"BT","BY","BZ","CA","CF","CH","CI","CL","CN","CO","CR","CU","CX",
+	"CY","CZ","DE","DK","DM","DO","DZ","EC","EE","EG","ES","ET","FI",
+	"FM","FR","GB","GD","GE","GF","GH","GL","GP","GR","GT","GU","GY",
+	"HK","HN","HR","HT","HU","ID","IE","IL","IN","IR","IS","IT","JM",
+	"JO","JP","KE","KH","KN","KP","KR","KW","KY","KZ","LB","LC","LI",
+	"LK","LS","LT","LU","LV","MA","MC","MD","ME","MF","MH","MK","MN",
+	"MO","MP","MQ","MR","MT","MU","MV","MW","MX","MY","NG","NI","NL",
+	"NO","NP","NZ","OM","PA","PE","PF","PG","PH","PK","PL","PM","PR",
+	"PT","PW","PY","QA","RE","RO","RS","RU","RW","SA","SE","SG","SI",
+	"SK","SN","SR","SV","SY","TC","TD","TG","TH","TN","TR","TT","TW",
+	"TZ","UA","UG","US","UY","UZ","VC","VE","VI","VN","VU","WF","WS",
+	"YE","YT","ZA","ZW"
+};
+
+static int is_valid_country_code (const char *alpha2)
+{
+	assert (alpha2 != 0);
+
+	for (unsigned i = 0; i < sizeof countries / sizeof countries[0]; i++)
+	{
+		if (   countries[i][0] == alpha2[0]
+		    && countries[i][1] == alpha2[1])
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
 
 static int wpa_driver_circle_get_bssid (void *priv, u8 *bssid)
 {
@@ -228,6 +263,7 @@ static void *wpa_driver_circle_init (void *ctx, const char *ifname)
 
 	drv->ctx = ctx;
 	drv->netdev = (CBcm4343Device *) netdev;	// netdev can only be of this type
+	drv->country_set = 0;
 
 	drv->netdev->RegisterEventHandler (wpa_driver_circle_event_handler, drv);
 
@@ -409,7 +445,7 @@ int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params
 
 	if (params->auth_alg != AUTH_ALG_OPEN_SYSTEM)
 	{
-		wpa_printf (MSG_WARNING, "Auth algorithm not supported (%d)", params->auth_alg);
+		wpa_printf (MSG_ERROR, "Auth algorithm not supported (%d)", params->auth_alg);
 
 		return -1;
 	}
@@ -430,6 +466,13 @@ int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params
 		}
 	}
 
+	if (!drv->country_set)
+	{
+		wpa_printf (MSG_ERROR, "Country code not set");
+
+		return -1;
+	}
+
 	assert (drv->netdev != 0);
 	if (!drv->netdev->Control ("join %s %u %s", (const char *) SSID,
 				   chan, (const char *) Auth))
@@ -445,6 +488,37 @@ int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params
 	return 0;
 }
 
+int wpa_driver_circle_set_country (void *priv, const char *alpha2)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
+	assert (drv != 0);
+
+	char country[3];
+	assert (alpha2 != 0);
+	country[0] = alpha2[0];
+	country[1] = alpha2[1];
+	country[2] = '\0';
+
+	if (!is_valid_country_code (alpha2))
+	{
+		wpa_printf (MSG_ERROR, "Invalid country code: '%s'", country);
+
+		return -1;
+	}
+
+	wpa_printf (MSG_INFO, "Set country code to '%s'", country);
+
+	assert (drv->netdev != 0);
+	if (!drv->netdev->Control ("country %s", country))
+	{
+		return -1;
+	}
+
+	drv->country_set = 1;
+
+	return 0;
+}
+
 extern "C" const struct wpa_driver_ops wpa_driver_circle_ops =
 {
 	.name = "circle",
@@ -456,5 +530,6 @@ extern "C" const struct wpa_driver_ops wpa_driver_circle_ops =
 	.deinit = wpa_driver_circle_deinit,
 	.associate = wpa_driver_circle_associate,
 	.get_scan_results2 = wpa_driver_circle_get_scan_results2,
+	.set_country = wpa_driver_circle_set_country,
 	.scan2 = wpa_driver_circle_scan2,
 };
