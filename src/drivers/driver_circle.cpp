@@ -240,16 +240,27 @@ static int wpa_driver_circle_set_key (void *priv, wpa_alg alg, const u8 *addr,
 	return 0;
 }
 
-static void wpa_driver_circle_event_handler (ether_event_type_t type, const void *params,
-					     void *context)
+static void wpa_driver_circle_event_handler (ether_event_type_t		 type,
+					     const ether_event_params_t *params,
+					     void			*context)
 {
 	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) context;
 	assert (drv != 0);
+
+	wpa_event_data data;
+	memset (&data, 0, sizeof data);
 
 	switch (type)
 	{
 	case ether_event_disassociate:
 		wpa_supplicant_event (drv->ctx, EVENT_DISASSOC, 0);
+		break;
+
+	case ether_event_mic_error:
+		assert (params != 0);
+		data.michael_mic_failure.unicast = !params->mic_error.group;
+		data.michael_mic_failure.src = params->mic_error.addr;
+		wpa_supplicant_event (drv->ctx, EVENT_MICHAEL_MIC_FAILURE, &data);
 		break;
 
 	default:
