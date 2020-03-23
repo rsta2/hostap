@@ -252,8 +252,12 @@ static void wpa_driver_circle_event_handler (ether_event_type_t		 type,
 
 	switch (type)
 	{
-	case ether_event_disassociate:
+	case ether_event_disassoc:
 		wpa_supplicant_event (drv->ctx, EVENT_DISASSOC, 0);
+		break;
+
+	case ether_event_deauth:
+		wpa_supplicant_event (drv->ctx, EVENT_DEAUTH, 0);
 		break;
 
 	case ether_event_mic_error:
