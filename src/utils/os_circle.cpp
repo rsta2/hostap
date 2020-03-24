@@ -18,6 +18,7 @@
 #include <circle/startup.h>
 #include <circle/bcmrandom.h>
 #include <circle/sysconfig.h>
+#include <circle/multicore.h>
 #include <circle/debug.h>
 #include <circle/sched/scheduler.h>
 #include <assert.h>
