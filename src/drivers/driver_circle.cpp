@@ -475,9 +475,22 @@ static int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params 
 {
 	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
 	assert (drv != 0);
+	assert (params != 0);
+
+	CString BSSID ("FFFFFFFFFFFF");
+	if (params->bssid != 0)
+	{
+		BSSID = "";
+		for (unsigned i = 0; i < ETH_ALEN; i++)
+		{
+			CString Number;
+			Number.Format ("%02X", (unsigned) params->bssid[i]);
+
+			BSSID.Append (Number);
+		}
+	}
 
 	char ssid[32+1];
-	assert (params != 0);
 	assert (params->ssid != 0);
 	assert (params->ssid_len < sizeof ssid);
 	os_memcpy (ssid, params->ssid, params->ssid_len);
@@ -517,8 +530,8 @@ static int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params 
 	}
 
 	assert (drv->netdev != 0);
-	if (!drv->netdev->Control ("join %s %u %s", (const char *) SSID,
-				   chan, (const char *) Auth))
+	if (!drv->netdev->Control ("join %s %s %u %s", (const char *) SSID,
+				   (const char *) BSSID, chan, (const char *) Auth))
 	{
 		return -1;
 	}
