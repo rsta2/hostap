@@ -253,6 +253,7 @@ static void wpa_driver_circle_event_handler (ether_event_type_t		 type,
 	switch (type)
 	{
 	case ether_event_disassoc:
+		drv->ssid_len = 0;
 		wpa_supplicant_event (drv->ctx, EVENT_DISASSOC, 0);
 		break;
 
@@ -300,6 +301,8 @@ static void wpa_driver_circle_deinit (void *priv)
 {
 	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
 	assert (drv != 0);
+
+	drv->netdev->RegisterEventHandler (0, 0);
 
 	os_free (drv);
 }
@@ -454,7 +457,21 @@ static wpa_scan_results *wpa_driver_circle_get_scan_results2 (void *priv)
 	return results;
 }
 
-int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params)
+static int wpa_driver_circle_disassociate (void *priv, const u8 *addr, int reason_code)
+{
+	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
+	assert (drv != 0);
+
+	assert (drv->netdev != 0);
+	if (!drv->netdev->Control ("disassoc %d", reason_code))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+static int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params)
 {
 	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
 	assert (drv != 0);
@@ -514,7 +531,7 @@ int wpa_driver_circle_associate (void *priv, wpa_driver_associate_params *params
 	return 0;
 }
 
-int wpa_driver_circle_set_country (void *priv, const char *alpha2)
+static int wpa_driver_circle_set_country (void *priv, const char *alpha2)
 {
 	wpa_driver_circle_data *drv = (wpa_driver_circle_data *) priv;
 	assert (drv != 0);
@@ -554,6 +571,7 @@ extern "C" const struct wpa_driver_ops wpa_driver_circle_ops =
 	.set_key = wpa_driver_circle_set_key,
 	.init = wpa_driver_circle_init,
 	.deinit = wpa_driver_circle_deinit,
+	.disassociate = wpa_driver_circle_disassociate,
 	.associate = wpa_driver_circle_associate,
 	.get_scan_results2 = wpa_driver_circle_get_scan_results2,
 	.set_country = wpa_driver_circle_set_country,

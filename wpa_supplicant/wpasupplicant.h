@@ -14,6 +14,7 @@
 #ifndef _wpasupplicant_h
 #define _wpasupplicant_h
 
+#include <circle/sched/synchronizationevent.h>
 #include <circle/string.h>
 #include <circle/types.h>
 
@@ -30,6 +31,8 @@ private:
 
 private:
 	CString m_ConfigFile;
+
+	CSynchronizationEvent m_ShutdownEvent;
 };
 
 #endif

@@ -21,8 +21,6 @@ extern "C" {
 #include "common.h"
 #include "wpa_supplicant_i.h"
 
-int wpa_supplicant_main (const char *confname);
-
 }
 
 int wpa_supplicant_main (const char *confname)
