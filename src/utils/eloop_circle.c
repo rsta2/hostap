@@ -17,6 +17,7 @@
 #include "common.h"
 #include "eloop.h"
 
+extern int l2_packet_auth_active (void);
 
 struct eloop_sock {
 	int sock;
@@ -33,13 +34,6 @@ struct eloop_timeout {
 	struct eloop_timeout *next;
 };
 
-struct eloop_signal {
-	int sig;
-	void *user_data;
-	void (*handler)(int sig, void *eloop_ctx, void *signal_ctx);
-	int signaled;
-};
-
 struct eloop_data {
 	void *user_data;
 
@@ -47,11 +41,6 @@ struct eloop_data {
 	struct eloop_sock *readers;
 
 	struct eloop_timeout *timeout;
-
-	int signal_count;
-	struct eloop_signal *signals;
-	int signaled;
-	int pending_terminate;
 
 	int terminate;
 	int reader_table_changed;
@@ -217,84 +206,10 @@ int eloop_is_timeout_registered(void (*handler)(void *eloop_ctx,
 }
 
 
-/* TODO: replace with suitable signal handler */
-#if 0
-static void eloop_handle_signal(int sig)
-{
-	int i;
-
-	eloop.signaled++;
-	for (i = 0; i < eloop.signal_count; i++) {
-		if (eloop.signals[i].sig == sig) {
-			eloop.signals[i].signaled++;
-			break;
-		}
-	}
-}
-#endif
-
-
-static void eloop_process_pending_signals(void)
-{
-	int i;
-
-	if (eloop.signaled == 0)
-		return;
-	eloop.signaled = 0;
-
-	if (eloop.pending_terminate) {
-		eloop.pending_terminate = 0;
-	}
-
-	for (i = 0; i < eloop.signal_count; i++) {
-		if (eloop.signals[i].signaled) {
-			eloop.signals[i].signaled = 0;
-			eloop.signals[i].handler(eloop.signals[i].sig,
-						 eloop.user_data,
-						 eloop.signals[i].user_data);
-		}
-	}
-}
-
-
-int eloop_register_signal(int sig,
-			  void (*handler)(int sig, void *eloop_ctx,
-					  void *signal_ctx),
-			  void *user_data)
-{
-	struct eloop_signal *tmp;
-
-	tmp = (struct eloop_signal *)
-		realloc(eloop.signals,
-			(eloop.signal_count + 1) *
-			sizeof(struct eloop_signal));
-	if (tmp == NULL)
-		return -1;
-
-	tmp[eloop.signal_count].sig = sig;
-	tmp[eloop.signal_count].user_data = user_data;
-	tmp[eloop.signal_count].handler = handler;
-	tmp[eloop.signal_count].signaled = 0;
-	eloop.signal_count++;
-	eloop.signals = tmp;
-
-	/* TODO: register signal handler */
-
-	return 0;
-}
-
-
 int eloop_register_signal_terminate(void (*handler)(int sig, void *eloop_ctx,
 						    void *signal_ctx),
 				    void *user_data)
 {
-#if 0
-	/* TODO: for example */
-	int ret = eloop_register_signal(SIGINT, handler, user_data);
-	if (ret == 0)
-		ret = eloop_register_signal(SIGTERM, handler, user_data);
-	return ret;
-#endif
 	return 0;
 }
 
@@ -303,10 +218,6 @@ int eloop_register_signal_reconfig(void (*handler)(int sig, void *eloop_ctx,
 						   void *signal_ctx),
 				   void *user_data)
 {
-#if 0
-	/* TODO: for example */
-	return eloop_register_signal(SIGHUP, handler, user_data);
-#endif
 	return 0;
 }
 
@@ -314,25 +225,10 @@ int eloop_register_signal_reconfig(void (*handler)(int sig, void *eloop_ctx,
 void eloop_run(void)
 {
 	int i;
-	struct os_time tv, now;
+	struct os_time now;
 
-	while (!eloop.terminate &&
-		(eloop.timeout || eloop.reader_count > 0)) {
-		if (eloop.timeout) {
-			os_get_time(&now);
-			if (os_time_before(&now, &eloop.timeout->time))
-				os_time_sub(&eloop.timeout->time, &now, &tv);
-			else
-				tv.sec = tv.usec = 0;
-		}
-
-		/*
-		 * TODO: wait for any event (read socket ready, timeout (tv),
-		 * signal
-		 */
-		os_sleep(0, 100000); /* just a dummy wait for testing */
-
-		eloop_process_pending_signals();
+	while (!eloop.terminate) {
+		os_sleep(0, l2_packet_auth_active () ? 10000 : 200000);
 
 		/* check if some registered timeouts have occurred */
 		if (eloop.timeout) {
@@ -351,18 +247,12 @@ void eloop_run(void)
 
 		eloop.reader_table_changed = 0;
 		for (i = 0; i < eloop.reader_count; i++) {
-			/*
-			 * TODO: call each handler that has pending data to
-			 * read
-			 */
-			if (1 /* TODO: eloop.readers[i].sock ready */) {
-				eloop.readers[i].handler(
-					eloop.readers[i].sock,
-					eloop.readers[i].eloop_data,
-					eloop.readers[i].user_data);
-				if (eloop.reader_table_changed)
-					break;
-			}
+			eloop.readers[i].handler(
+				eloop.readers[i].sock,
+				eloop.readers[i].eloop_data,
+				eloop.readers[i].user_data);
+			if (eloop.reader_table_changed)
+				break;
 		}
 	}
 }
@@ -385,22 +275,12 @@ void eloop_destroy(void)
 		free(prev);
 	}
 	free(eloop.readers);
-	free(eloop.signals);
 }
 
 
 int eloop_terminated(void)
 {
 	return eloop.terminate;
-}
-
-
-void eloop_wait_for_read_sock(int sock)
-{
-	/*
-	 * TODO: wait for the file descriptor to have something available for
-	 * reading
-	 */
 }
 
 

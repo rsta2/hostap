@@ -40,6 +40,8 @@ struct l2_packet_data
 
 static void l2_packet_receive (int sock, void *eloop_ctx, void *sock_ctx);
 
+static int auth_active;
+
 l2_packet_data * l2_packet_init (const char *ifname, const u8 *own_addr, unsigned short protocol,
 				 void (*rx_callback) (void *ctx, const u8 *src_addr,
 						      const u8 *buf, size_t len),
@@ -58,6 +60,8 @@ l2_packet_data * l2_packet_init (const char *ifname, const u8 *own_addr, unsigne
 	l2->protocol = protocol;
 	l2->rx_callback = rx_callback;
 	l2->rx_callback_ctx = rx_callback_ctx;
+
+	auth_active = 0;
 
 	const CMACAddress *mac = CNetSubSystem::Get ()->GetNetDeviceLayer ()->GetMACAddress ();
 	assert (mac != 0);
@@ -149,11 +153,29 @@ static void l2_packet_receive (int sock, void *eloop_ctx, void *sock_ctx)
 	}
 }
 
+#define AUTH_DURATION_SECS	5
+
+static void l2_packet_auth_end (void *eloop_ctx, void *timeout_ctx)
+{
+	auth_active = 0;
+}
+
 void l2_packet_notify_auth_start (l2_packet_data *l2)
 {
+	assert (l2 != 0);
+
+	auth_active = 1;
+
+	eloop_cancel_timeout (l2_packet_auth_end, l2, 0);
+	eloop_register_timeout (AUTH_DURATION_SECS, 0, l2_packet_auth_end, l2, 0);
 }
 
 int l2_packet_get_ip_addr (l2_packet_data *l2, char *buf, size_t len)
 {
 	return -1;
+}
+
+extern "C" int l2_packet_auth_active (void)
+{
+	return auth_active;
 }
