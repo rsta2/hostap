@@ -38,6 +38,17 @@ extern "C" {
 
 typedef signed long	time_t;
 
+#define abs		__wpa_abs
+#define isprint		__wpa_isprint
+#define strrchr		__wpa_strrchr
+#define strdup		__wpa_strdup
+#define snprintf	__wpa_snprintf
+#define vsnprintf	__wpa_vsnprintf
+#define printf		__wpa_printf
+#define vprintf		__wpa_vprintf
+#define qsort		__wpa_qsort
+#define abort		__wpa_abort
+
 int abs (int i);
 
 int isprint (int c);
