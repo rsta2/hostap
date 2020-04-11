@@ -347,7 +347,7 @@ static int wpa_driver_circle_scan2 (void *priv, wpa_driver_scan_params *params)
 	return 0;
 }
 
-static int chanspec2freq (u16 chanspec)		// TODO
+static int chanspec2freq (u16 chanspec)
 {
 	u8 chan = chanspec & 0xFF;
 
@@ -362,14 +362,9 @@ static int chanspec2freq (u16 chanspec)		// TODO
 		return low_freqs[chan-1];
 	}
 
-	if (36 <= chan && chan <= 140)
+	if (32 <= chan && chan <= 173)
 	{
-		if (65 <= chan && chan <= 99)
-		{
-			return -1;
-		}
-
-		return 5180 + (chan-36) * 5;
+		return 5160 + (chan-32) * 5;
 	}
 
 	return -1;
@@ -412,11 +407,12 @@ static wpa_scan_results *wpa_driver_circle_get_scan_results2 (void *priv)
 
 		// TODO: validate escan result data
 		brcmf_escan_result_le *scan_res = (brcmf_escan_result_le *) buf;
-		assert (scan_res->version == BRCMF_BSS_INFO_VERSION);
 
 		brcmf_bss_info_le *bss = &scan_res->bss_info_le;
 		for (unsigned i = 0; i < scan_res->bss_count; i++)
 		{
+			assert (bss->version == BRCMF_BSS_INFO_VERSION);
+
 			int freq = chanspec2freq (bss->chanspec);
 			if (freq <= 0)
 			{
