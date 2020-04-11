@@ -12,7 +12,7 @@
 // license.
 //
 #include "wpasupplicant.h"
-#include <wifi/p9compat.h>
+#include <wlan/p9compat.h>
 #include <assert.h>
 
 extern "C"

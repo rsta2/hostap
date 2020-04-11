@@ -42,7 +42,7 @@ extern "C" {
 #include <circle/netdevice.h>
 #include <circle/macaddress.h>
 #include <circle/string.h>
-#include <wifi/bcm4343.h>
+#include <wlan/bcm4343.h>
 #include <assert.h>
 
 typedef u16 __le16;
