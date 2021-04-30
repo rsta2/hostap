@@ -23,12 +23,22 @@ extern "C" {
 
 }
 
+static struct wpa_global *global = NULL;
+
+int wpa_supplicant_is_connected (void)
+{
+	if (   global == NULL
+	    || global->ifaces == NULL)
+		return 0;
+
+	return global->ifaces->wpa_state == WPA_COMPLETED;
+}
+
 int wpa_supplicant_main (const char *confname)
 {
 	struct wpa_interface iface;
 	int exitcode = 0;
 	struct wpa_params params;
-	struct wpa_global *global;
 
 	memset(&params, 0, sizeof(params));
 	params.wpa_debug_level = MSG_INFO;

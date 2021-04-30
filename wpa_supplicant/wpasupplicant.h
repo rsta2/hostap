@@ -26,6 +26,8 @@ public:
 
 	boolean Initialize (void);
 
+	boolean IsConnected (void) const;
+
 private:
 	static void ProcEntry (void *pParam);
 

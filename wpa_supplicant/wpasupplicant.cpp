@@ -23,6 +23,7 @@ extern "C"
 }
 
 int wpa_supplicant_main (const char *confname);
+int wpa_supplicant_is_connected (void);
 
 CWPASupplicant::CWPASupplicant (const char *pConfigFile)
 :	m_ConfigFile (pConfigFile)
@@ -42,6 +43,11 @@ boolean CWPASupplicant::Initialize (void)
 	kproc ("wpa_supplicant", ProcEntry, this);
 
 	return TRUE;
+}
+
+boolean CWPASupplicant::IsConnected (void) const
+{
+	return !!wpa_supplicant_is_connected ();
 }
 
 void CWPASupplicant::ProcEntry (void *pParam)
