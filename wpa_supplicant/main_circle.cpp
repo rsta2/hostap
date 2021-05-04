@@ -59,6 +59,7 @@ int wpa_supplicant_main (const char *confname)
 		exitcode = wpa_supplicant_run(global);
 
 	wpa_supplicant_deinit(global);
+	global = NULL;
 
 	return exitcode;
 }
