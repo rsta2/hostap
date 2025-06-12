@@ -13,6 +13,7 @@
 //
 #include "wpasupplicant.h"
 #include <wlan/p9compat.h>
+#include <wlan/bcm4343.h>
 #include <assert.h>
 
 extern "C"
@@ -40,12 +41,17 @@ CWPASupplicant::~CWPASupplicant (void)
 
 boolean CWPASupplicant::Initialize (void)
 {
+	CNetDevice *pNetDevice = CNetDevice::GetNetDevice (NetDeviceTypeWLAN);
+	assert (pNetDevice != 0);
+	CBcm4343Device *pBcm4343Device = (CBcm4343Device *) pNetDevice;
+	pBcm4343Device->RegisterConnectedProvider (IsConnected);
+
 	kproc ("wpa_supplicant", ProcEntry, this);
 
 	return TRUE;
 }
 
-boolean CWPASupplicant::IsConnected (void) const
+boolean CWPASupplicant::IsConnected (void)
 {
 	return !!wpa_supplicant_is_connected ();
 }

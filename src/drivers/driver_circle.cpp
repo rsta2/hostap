@@ -252,6 +252,9 @@ static void wpa_driver_circle_event_handler (ether_event_type_t		 type,
 
 	switch (type)
 	{
+	case ether_event_link:		// ignore
+		break;
+
 	case ether_event_disassoc:
 		drv->ssid_len = 0;
 		wpa_supplicant_event (drv->ctx, EVENT_DISASSOC, 0);
