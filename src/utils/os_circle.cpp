@@ -274,11 +274,10 @@ int os_get_time (struct os_time *t)
 	return 0;
 }
 
-// TODO: use to be implemented CTimer::GetUptime(sec, usec)
 int os_get_reltime (struct os_reltime *t)
 {
 	unsigned sec, usec;
-	CTimer::Get ()->GetLocalTime (&sec, &usec);
+	CTimer::Get ()->GetUptime (&sec, &usec);
 
 	t->sec = sec;
 	t->usec = usec;
