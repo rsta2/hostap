@@ -13,6 +13,9 @@
 
 const struct wpa_driver_ops *const wpa_drivers[] =
 {
+#ifdef CONFIG_DRIVER_CIRCLE
+	&wpa_driver_circle_ops,
+#endif /* CONFIG_DRIVER_CIRCLE */
 #ifdef CONFIG_DRIVER_NL80211
 	&wpa_driver_nl80211_ops,
 #endif /* CONFIG_DRIVER_NL80211 */

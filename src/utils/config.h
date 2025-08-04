@@ -9,6 +9,15 @@
 #ifndef UTILS_CONFIG_H
 #define UTILS_CONFIG_H
 
+#ifdef __circle__
+#include <fatfs/ff.h>
+
+#define FILE	FIL
+
+#define fclose	f_close
+#define fgets	f_gets
+#endif
+
 /**
  * wpa_config_get_line - Read the next configuration file line
  * @s: Buffer for the line

@@ -299,7 +299,12 @@ static int wpa_config_process_blob(struct wpa_config *config, FILE *f,
 struct wpa_config * wpa_config_read(const char *name, struct wpa_config *cfgp,
 				    bool ro)
 {
+#ifdef __circle__
+	FILE file, *f = &file;
+	FRESULT res;
+#else
 	FILE *f;
+#endif
 	char buf[512], *pos;
 	int errors = 0, line = 0;
 	struct wpa_ssid *ssid, *tail, *head;
@@ -327,10 +332,19 @@ struct wpa_config * wpa_config_read(const char *name, struct wpa_config *cfgp,
 		cred_tail = cred_tail->next;
 
 	wpa_printf(MSG_DEBUG, "Reading configuration file '%s'", name);
+#ifdef __circle__
+	res = f_open (f, name, FA_READ);
+	if (res != FR_OK) {
+#else
 	f = fopen(name, "r");
 	if (f == NULL) {
+#endif
 		wpa_printf(MSG_ERROR, "Failed to open config file '%s', "
+#ifdef __circle__
+			   "error: %u", name, res);
+#else
 			   "error: %s", name, strerror(errno));
+#endif
 		if (config != cfgp)
 			os_free(config);
 		return NULL;

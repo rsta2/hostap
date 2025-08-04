@@ -21,8 +21,10 @@
 #include "rsn_supp/pmksa_cache.h"
 #include "common/wpa_ctrl.h"
 #include "eap_peer/eap.h"
+#ifndef __circle__
 #include "ap/hostapd.h"
 #include "ap/sta_info.h"
+#endif
 #include "p2p/p2p.h"
 #include "fst/fst.h"
 #include "wnm_sta.h"

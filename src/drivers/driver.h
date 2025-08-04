@@ -6948,6 +6948,9 @@ extern const struct wpa_driver_ops *const wpa_drivers[];
 
 /* Available drivers */
 
+#ifdef CONFIG_DRIVER_CIRCLE
+extern const struct wpa_driver_ops wpa_driver_circle_ops; /* driver_circle.c */
+#endif /* CONFIG_DRIVER_CIRCLE */
 #ifdef CONFIG_DRIVER_WEXT
 extern const struct wpa_driver_ops wpa_driver_wext_ops; /* driver_wext.c */
 #endif /* CONFIG_DRIVER_WEXT */

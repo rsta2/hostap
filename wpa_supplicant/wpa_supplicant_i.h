@@ -556,6 +556,7 @@ struct ipv4_params {
 	u8 protocol;
 };
 
+#ifndef __circle__
 
 struct ipv6_params {
 	struct in6_addr src_ip;
@@ -567,13 +568,16 @@ struct ipv6_params {
 	u8 flow_label[3];
 };
 
+#endif
 
 struct type4_params {
 	u8 classifier_mask;
 	enum ip_version ip_version;
 	union {
 		struct ipv4_params v4;
+#ifndef __circle__
 		struct ipv6_params v6;
+#endif
 	} ip_params;
 };
 

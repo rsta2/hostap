@@ -9,6 +9,14 @@
 #ifndef OS_H
 #define OS_H
 
+#ifdef __circle__
+#include "os_circle.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef long os_time_t;
 
 /**
@@ -266,12 +274,14 @@ char * os_readfile(const char *name, size_t *len);
  */
 int os_file_exists(const char *fname);
 
+#ifndef __circle__
 /**
  * os_fdatasync - Sync a file's (for a given stream) state with storage device
  * @stream: the stream to be flushed
  * Returns: 0 if the operation succeeded or -1 on failure
  */
 int os_fdatasync(FILE *stream);
+#endif
 
 /**
  * os_zalloc - Allocate and zero memory
@@ -704,6 +714,10 @@ static inline int testing_get_fail_pattern(bool is_alloc, char *buf,
 					   size_t buflen)
 {
 	return -1;
+}
+#endif
+
+#ifdef __cplusplus
 }
 #endif
 
