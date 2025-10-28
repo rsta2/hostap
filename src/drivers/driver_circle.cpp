@@ -341,7 +341,7 @@ static int wpa_driver_circle_scan2 (void *priv, wpa_driver_scan_params *params)
 	//assert (params->num_ssids == 0);
 	assert (params->extra_ies == 0);
 	assert (params->extra_ies_len == 0);
-	assert (params->freqs == 0);
+	//assert (params->freqs == 0);
 
 	assert (drv->netdev != 0);
 	// increase scan duration here to be sure, scan is not started again
